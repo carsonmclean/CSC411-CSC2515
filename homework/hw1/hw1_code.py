@@ -10,6 +10,8 @@ import numpy as np
 import pandas
 import math
 
+import matplotlib.pyplot as plt
+
 # 0 = assignment submission, 1 = regular development, 2 = debugging
 PRINT_LEVEL = 1
 
@@ -57,8 +59,19 @@ def load_data():
 def select_model(datasets, vectorizer):
     train, validation, test = datasets
 
-    max_depth_list = [1,3,5,10,25]
+    max_depth_list = [i for i in range(1, 30)]
     split_criteria_list = ['entropy', 'gini']
+
+    vocab = ['']*int(len(vectorizer.vocabulary_))
+    pr(2, type(vectorizer.vocabulary_))
+    for word, index in vectorizer.vocabulary_.items():
+        pr(2, (word, index))
+        vocab[int(index)] = word
+    pr(2, vocab)
+
+    best = [0, "", 0.0] # [depth, criteria, accuracy]
+    entropy_accuracy = []
+    gini_accuracy = []
 
     for max_depth in max_depth_list:
         for split_criteria in split_criteria_list:
@@ -71,13 +84,40 @@ def select_model(datasets, vectorizer):
                 y=train["label"]
             )
             predictions = classifier.predict(vectorizer.transform(validation["titles"]))
-            print("\nMax Depth: " + str(max_depth) + " Split Criteria: " + str(split_criteria))
-            print(accuracy_score(predictions, validation["label"]))
+            accuracy = accuracy_score(predictions, validation["label"])
+            print("\nMax Depth: " + str(max_depth) + " // Split Criteria: " + str(split_criteria))
+            print(accuracy)
 
-            export_graphviz(
-                decision_tree=classifier,
-                out_file=split_criteria+str(max_depth),
-            )
+            if accuracy > best[2]:
+                best = [str(max_depth), split_criteria, accuracy]
+
+            if split_criteria == "entropy":
+                entropy_accuracy.append(accuracy)
+            else:
+                gini_accuracy.append(accuracy)
+
+
+    print("\nBest Results:")
+    print("Max Depth: " + str(best[0]) + " // Split Criteria: " + str(best[1]))
+    print(best[2])
+
+    plt.plot(gini_accuracy, label="gini")
+    plt.plot(entropy_accuracy, label="entropy")
+    plt.legend()
+    plt.show()
+
+
+    # http://scikit-learn.org/stable/modules/tree.html#classification
+    graph_data = export_graphviz(
+        decision_tree=classifier,
+        out_file="best.dot",
+        feature_names=vocab,
+        class_names=classifier.classes_,
+        max_depth=2,
+        filled=True,
+        rounded=True,
+    )
+
 
 def pr(level, input):
     if PRINT_LEVEL >= level:
