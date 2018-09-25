@@ -10,6 +10,10 @@ import numpy as np
 import pandas
 import math
 
+# 0 = assignment submission, 1 = regular development, 2 = debugging
+PRINT_LEVEL = 1
+
+
 def load_data():
     fake_file = open("clean_fake.txt", "r")
     real_file = open("clean_real.txt", "r")
@@ -26,23 +30,24 @@ def load_data():
 
     # ekad, tj89 -> https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
     df = shuffle(df)
-    print("data.head()" + str(df.head()))
+    pr(2, "data.head()" + str(df.head()))
 
     vectorizer = TfidfVectorizer()
     vectorizer.fit(df['titles'])
+    pr(2, vectorizer.vocabulary_)
 
     count = df.shape[0]
     train = df[0:math.floor(count*0.7)]
     validation = df[math.floor(count*0.7):math.floor(count*0.85)]
     test = df[math.floor(count*0.85):]
-    print("train: " + str(train.shape))
+    print("\ntrain: " + str(train.shape))
     print("validation: " + str(validation.shape))
     print("test: " + str(test.shape))
     print("\n% real labelled data in each set:")
     print(train[train["label"] == "real"].count()["label"]/train.shape[0])
     print(validation[validation["label"] == "real"].count()["label"]/validation.shape[0])
     print(test[test["label"] == "real"].count()["label"]/test.shape[0])
-    print("\n% real labelled data overall:")
+    print("% real labelled data overall:")
     print(len(real_data)/(len(fake_data)+len(real_data)))
 
 def old():
@@ -83,5 +88,8 @@ def old():
 
     print(accuracy_score(predictions, test_labels))
 
+def pr(level, input):
+    if PRINT_LEVEL >= level:
+        print(input)
 
 load_data()
