@@ -50,6 +50,32 @@ def load_data():
     print("% real labelled data overall:")
     print(len(real_data)/(len(fake_data)+len(real_data)))
 
+    datasets = [train, validation, test]
+
+    return datasets, vectorizer
+
+def select_model(datasets, vectorizer):
+    train, validation, test = datasets
+
+    max_depth_list = [1,3,5,10,25]
+    split_criteria_list = ['entropy', 'gini']
+
+    for max_depth in max_depth_list:
+        for split_criteria in split_criteria_list:
+            classifier = DecisionTreeClassifier(
+                max_depth=max_depth,
+                criterion=split_criteria
+            )
+            classifier.fit(
+                X=vectorizer.transform(train["titles"]),
+                y=train["label"]
+            )
+            predictions = classifier.predict(vectorizer.transform(validation["titles"]))
+            print("\nMax Depth: " + str(max_depth) + " Split Criteria: " + str(split_criteria))
+            print(accuracy_score(predictions, validation["label"]))
+
+
+
 def old():
     fake_file = open("clean_fake.txt", "r")
     real_file = open("clean_real.txt", "r")
@@ -92,4 +118,6 @@ def pr(level, input):
     if PRINT_LEVEL >= level:
         print(input)
 
-load_data()
+
+datasets, vectorizer = load_data()
+select_model(datasets, vectorizer)
