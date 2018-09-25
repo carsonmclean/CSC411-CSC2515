@@ -91,6 +91,17 @@ def select_model(datasets, vectorizer):
             if accuracy > best[2]:
                 best = [str(max_depth), split_criteria, accuracy]
 
+                # http://scikit-learn.org/stable/modules/tree.html#classification
+                graph_data = export_graphviz(
+                    decision_tree=classifier,
+                    out_file="best.dot",
+                    feature_names=vocab,
+                    class_names=classifier.classes_,
+                    max_depth=2,
+                    filled=True,
+                    rounded=True,
+                )
+
             if split_criteria == "entropy":
                 entropy_accuracy.append(accuracy)
             else:
@@ -105,18 +116,6 @@ def select_model(datasets, vectorizer):
     plt.plot(entropy_accuracy, label="entropy")
     plt.legend()
     plt.show()
-
-
-    # http://scikit-learn.org/stable/modules/tree.html#classification
-    graph_data = export_graphviz(
-        decision_tree=classifier,
-        out_file="best.dot",
-        feature_names=vocab,
-        class_names=classifier.classes_,
-        max_depth=2,
-        filled=True,
-        rounded=True,
-    )
 
 
 def pr(level, input):
