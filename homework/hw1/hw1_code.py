@@ -1,17 +1,15 @@
 
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
-from sklearn.utils import shuffle
-
+import math
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas
-import math
-
-import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
+# from sklearn.utils import shuffle
 
 # 0 = assignment submission, 1 = regular development, 2 = debugging
 PRINT_LEVEL = 1
-
+np.random.seed(12345)
 
 def load_data():
     fake_file = open("clean_fake.txt", "r")
@@ -32,8 +30,8 @@ def load_data():
     df = df.iloc[np.random.permutation(len(df))]
     pr(2, "data.head()" + str(df.head()))
 
-    # vectorizer = TfidfVectorizer()
-    vectorizer = CountVectorizer()
+    vectorizer = TfidfVectorizer()
+    # vectorizer = CountVectorizer()
     # as per TA office hour 2018-09-25, fit on all data, not just training.
     vectorizer.fit(df['titles'])
     pr(2, vectorizer.vocabulary_)
@@ -61,7 +59,8 @@ def load_data():
 def select_model(datasets, vectorizer):
     train, validation, test = datasets
 
-    max_depth_list = [i for i in range(1, 10, 1)]
+    # max_depth_list = [i for i in range(1, 30, 1)]
+    max_depth_list = [1, 4, 8, 12, 16]
     split_criteria_list = ['entropy', 'gini']
 
     vocab = ['']*int(len(vectorizer.vocabulary_))
