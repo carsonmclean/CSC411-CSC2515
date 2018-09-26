@@ -59,10 +59,11 @@ def load_data():
 def select_model(datasets, vectorizer):
     train, validation, test = datasets
 
-    # max_depth_list = [i for i in range(1, 30, 1)]
+    # max_depth_list = [i for i in range(1, 100, 1)] # use this with the plotting below to see more depth doesn't help accuracy
     max_depth_list = [1, 4, 8, 12, 16]
-    split_criteria_list = ['entropy', 'gini']
+    split_criteria_list = ['entropy', 'gini'] # 'entropy' == 'information gain'
 
+    # extract vocab words from vectorizer for decision tree feature_names
     vocab = ['']*int(len(vectorizer.vocabulary_))
     pr(2, type(vectorizer.vocabulary_))
     for word, index in vectorizer.vocabulary_.items():
@@ -86,7 +87,6 @@ def select_model(datasets, vectorizer):
             )
             predictions = classifier.predict(vectorizer.transform(validation["titles"]))
 
-
             correct = 0
             validation_list = validation["label"].tolist()
             for i in range(len(predictions)):
@@ -101,6 +101,7 @@ def select_model(datasets, vectorizer):
                 best = [str(max_depth), split_criteria, accuracy]
 
                 # http://scikit-learn.org/stable/modules/tree.html#classification
+                # continuously overwrite so at end, highest validation score is what remains in filesystem
                 graph_data = export_graphviz(
                     decision_tree=classifier,
                     out_file="best.dot",
@@ -111,6 +112,10 @@ def select_model(datasets, vectorizer):
                     rounded=True,
                 )
 
+                # in a bash terminal, run the following command to generate a PNG of the above graph data
+                # dot -Tpng best.dot -o tree.png
+
+            # track performance as max_depth increases. Enable the plotting below to see visually.
             if split_criteria == "entropy":
                 entropy_accuracy.append(accuracy)
             else:
@@ -121,10 +126,11 @@ def select_model(datasets, vectorizer):
     print("Max Depth: " + str(best[0]) + " // Split Criteria: " + str(best[1]))
     print(best[2])
 
-    plt.plot(gini_accuracy, label="gini")
-    plt.plot(entropy_accuracy, label="entropy")
-    plt.legend()
-    plt.show()
+    # uncomment to see plots of how validation accuracy increases as max_depth changes
+    # plt.plot(gini_accuracy, label="gini")
+    # plt.plot(entropy_accuracy, label="entropy")
+    # plt.legend()
+    # plt.show()
 
 def compute_information_gain(Y, xi):
     print("COMPUTE_INFORMATION_GAIN")
