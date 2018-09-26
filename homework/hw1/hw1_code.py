@@ -27,8 +27,9 @@ def load_data():
     print("real.shape()" + str(real_df.shape))
     print("data.shape()" + str(df.shape))
 
-    # ekad, tj89 -> https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
-    df = shuffle(df)
+    # ekad, tj89, joris -> https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
+    # df = shuffle(df)
+    df = df.iloc[np.random.permutation(len(df))]
     pr(2, "data.head()" + str(df.head()))
 
     # vectorizer = TfidfVectorizer()
