@@ -84,7 +84,15 @@ def select_model(datasets, vectorizer):
                 y=train["label"]
             )
             predictions = classifier.predict(vectorizer.transform(validation["titles"]))
-            accuracy = accuracy_score(predictions, validation["label"])
+
+
+            correct = 0
+            validation_list = validation["label"].tolist()
+            for i in range(len(predictions)):
+                if predictions[i] == validation_list[i]:
+                    correct += 1
+            accuracy = (correct/len(predictions)) # or just use sklearn.metrics.accuracy_score(predictions, validation["label"]
+
             print("\nMax Depth: " + str(max_depth) + " // Split Criteria: " + str(split_criteria))
             print(accuracy)
 
@@ -97,7 +105,7 @@ def select_model(datasets, vectorizer):
                     out_file="best.dot",
                     feature_names=vocab,
                     class_names=classifier.classes_,
-                    max_depth=2,
+                    # max_depth=2,
                     filled=True,
                     rounded=True,
                 )
