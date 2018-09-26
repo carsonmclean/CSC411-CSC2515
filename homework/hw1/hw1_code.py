@@ -1,8 +1,5 @@
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.utils import shuffle
 
@@ -34,7 +31,9 @@ def load_data():
     df = shuffle(df)
     pr(2, "data.head()" + str(df.head()))
 
-    vectorizer = TfidfVectorizer()
+    # vectorizer = TfidfVectorizer()
+    vectorizer = CountVectorizer()
+    # as per TA office hour 2018-09-25, fit on all data, not just training.
     vectorizer.fit(df['titles'])
     pr(2, vectorizer.vocabulary_)
 
@@ -54,12 +53,14 @@ def load_data():
 
     datasets = [train, validation, test]
 
+    compute_information_gain(train, 'trumps')
+
     return datasets, vectorizer
 
 def select_model(datasets, vectorizer):
     train, validation, test = datasets
 
-    max_depth_list = [i for i in range(1, 30)]
+    max_depth_list = [i for i in range(1, 10, 1)]
     split_criteria_list = ['entropy', 'gini']
 
     vocab = ['']*int(len(vectorizer.vocabulary_))
@@ -125,6 +126,31 @@ def select_model(datasets, vectorizer):
     plt.legend()
     plt.show()
 
+def compute_information_gain(Y, xi):
+    print("COMPUTE_INFORMATION_GAIN")
+    print('xi = ' + str(xi))
+
+    real = Y[Y['label'] == 'real'].count()['label']
+    fake = Y[Y['label'] == 'fake'].count()['label']
+    total = real + fake
+    print(real, fake, total)
+
+    print("Parent Entropy:")
+    parent_entropy = - (real/total*math.log2(real/total)) - (fake/total*math.log2(fake/total))
+    print(parent_entropy)
+
+    print("Splitting on: " + str(xi))
+    # df[df['A'].str.contains("hello")]
+    subset = Y[Y['titles'].str.contains(xi)]
+    real = subset[subset['label'] == 'real'].count()['label']
+    fake = subset[subset['label'] == 'fake'].count()['label']
+    subset_total = real + fake
+    print(real, fake, subset_total)
+    ch_entropy = - (real/subset_total*math.log2(real/subset_total)) - (fake/subset_total*math.log2(fake/subset_total))
+    print("Child Entropy: " + str(ch_entropy))
+
+    IG = parent_entropy - ch_entropy
+    print("Information Gain: " + str(IG))
 
 def pr(level, input):
     if PRINT_LEVEL >= level:
