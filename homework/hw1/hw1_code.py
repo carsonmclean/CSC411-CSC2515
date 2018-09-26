@@ -17,21 +17,20 @@ def load_data():
     fake_data = fake_file.read().splitlines()
     real_data = real_file.read().splitlines()
 
-
     fake_df = pandas.DataFrame({'titles': fake_data, 'label': "fake"})
     real_df = pandas.DataFrame({'titles': real_data, 'label': "real"})
     df = fake_df.append(real_df)
-    print("fake.shape()" + str(fake_df.shape))
-    print("real.shape()" + str(real_df.shape))
-    print("data.shape()" + str(df.shape))
+    pr(2, "fake.shape()" + str(fake_df.shape))
+    pr(2, "real.shape()" + str(real_df.shape))
+    pr(2, "data.shape()" + str(df.shape))
 
     # ekad, tj89, joris -> https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
-    # df = shuffle(df)
+    # df = shuffle(df) # not sure if allowed to use other sklearn functions
     df = df.iloc[np.random.permutation(len(df))]
     pr(2, "data.head()" + str(df.head()))
 
     vectorizer = TfidfVectorizer()
-    # vectorizer = CountVectorizer()
+    # vectorizer = CountVectorizer() # works also, however slightly reduced accuracy & needs more depth to reach max accuracy
     # as per TA office hour 2018-09-25, fit on all data, not just training.
     vectorizer.fit(df['titles'])
     pr(2, vectorizer.vocabulary_)
@@ -40,18 +39,19 @@ def load_data():
     train = df[0:math.floor(count*0.7)]
     validation = df[math.floor(count*0.7):math.floor(count*0.85)]
     test = df[math.floor(count*0.85):]
-    print("\ntrain: " + str(train.shape))
-    print("validation: " + str(validation.shape))
-    print("test: " + str(test.shape))
-    print("\n% real labelled data in each set:")
-    print(train[train["label"] == "real"].count()["label"]/train.shape[0])
-    print(validation[validation["label"] == "real"].count()["label"]/validation.shape[0])
-    print(test[test["label"] == "real"].count()["label"]/test.shape[0])
-    print("% real labelled data overall:")
-    print(len(real_data)/(len(fake_data)+len(real_data)))
+    pr(2, "\ntrain: " + str(train.shape))
+    pr(2, "validation: " + str(validation.shape))
+    pr(2, "test: " + str(test.shape))
+    pr(2, "\n% of real labelled data in each set:")
+    pr(2, train[train["label"] == "real"].count()["label"]/train.shape[0])
+    pr(2, validation[validation["label"] == "real"].count()["label"]/validation.shape[0])
+    pr(2, test[test["label"] == "real"].count()["label"]/test.shape[0])
+    pr(2, "% of real labelled data overall:")
+    pr(2, len(real_data)/(len(fake_data)+len(real_data)))
 
     datasets = [train, validation, test]
 
+    print("compute_information_gain")
     compute_information_gain(train, 'trumps')
 
     return datasets, vectorizer
