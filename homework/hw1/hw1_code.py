@@ -8,8 +8,8 @@ from sklearn.tree import DecisionTreeClassifier, export_graphviz
 # from sklearn.utils import shuffle
 
 # 0 = assignment submission, 1 = regular development, 2 = debugging
-PRINT_LEVEL = 1
-np.random.seed(12345)
+PRINT_LEVEL = 0
+np.random.seed(1234567)
 
 def load_data():
     fake_file = open("clean_fake.txt", "r")
@@ -51,8 +51,15 @@ def load_data():
 
     datasets = [train, validation, test]
 
+    print("########################################")
     print("compute_information_gain")
+    compute_information_gain(train, 'trump')
     compute_information_gain(train, 'trumps')
+    compute_information_gain(train, 'donald')
+    compute_information_gain(train, 'energy')
+    compute_information_gain(train, 'hillary')
+    compute_information_gain(train, 'canada')
+    print("\n")
 
     return datasets, vectorizer
 
@@ -75,6 +82,8 @@ def select_model(datasets, vectorizer):
     entropy_accuracy = []
     gini_accuracy = []
 
+    print("########################################")
+
     for max_depth in max_depth_list:
         for split_criteria in split_criteria_list:
             classifier = DecisionTreeClassifier(
@@ -94,7 +103,7 @@ def select_model(datasets, vectorizer):
                     correct += 1
             accuracy = (correct/len(predictions)) # or just use sklearn.metrics.accuracy_score(predictions, validation["label"]
 
-            print("\nMax Depth: " + str(max_depth) + " // Split Criteria: " + str(split_criteria))
+            print("Max Depth: " + str(max_depth) + " // Split Criteria: " + str(split_criteria))
             print(accuracy)
 
             if accuracy > best[2]:
@@ -107,7 +116,7 @@ def select_model(datasets, vectorizer):
                     out_file="best.dot",
                     feature_names=vocab,
                     class_names=classifier.classes_,
-                    # max_depth=2,
+                    max_depth=2,
                     filled=True,
                     rounded=True,
                 )
@@ -122,7 +131,7 @@ def select_model(datasets, vectorizer):
                 gini_accuracy.append(accuracy)
 
 
-    print("\nBest Results:")
+    print("\n########################################\nBest Results:")
     print("Max Depth: " + str(best[0]) + " // Split Criteria: " + str(best[1]))
     print(best[2])
 
@@ -133,27 +142,40 @@ def select_model(datasets, vectorizer):
     # plt.show()
 
 def compute_information_gain(Y, xi):
-    print("COMPUTE_INFORMATION_GAIN")
     print('xi = ' + str(xi))
 
     real = Y[Y['label'] == 'real'].count()['label']
     fake = Y[Y['label'] == 'fake'].count()['label']
     total = real + fake
-    print(real, fake, total)
+    pr(2, (real, fake, total))
 
-    print("Parent Entropy:")
+    pr(1, "Parent Entropy:")
     parent_entropy = - (real/total*math.log2(real/total)) - (fake/total*math.log2(fake/total))
-    print(parent_entropy)
+    pr(1, parent_entropy)
 
-    print("Splitting on: " + str(xi))
-    # df[df['A'].str.contains("hello")]
-    subset = Y[Y['titles'].str.contains(xi)]
-    real = subset[subset['label'] == 'real'].count()['label']
-    fake = subset[subset['label'] == 'fake'].count()['label']
-    subset_total = real + fake
-    print(real, fake, subset_total)
-    ch_entropy = - (real/subset_total*math.log2(real/subset_total)) - (fake/subset_total*math.log2(fake/subset_total))
-    print("Child Entropy: " + str(ch_entropy))
+    pr(1, "Splitting on: " + str(xi))
+    contains = Y[Y['titles'].str.contains(xi)]
+    con_real = contains[contains['label'] == 'real'].count()['label']
+    con_fake = contains[contains['label'] == 'fake'].count()['label']
+    con_total = con_real + con_fake
+    pr(1, (con_real, con_fake))
+    # Andy Hayden -> https://stackoverflow.com/questions/17097643/search-for-does-not-contain-on-a-dataframe-in-pandas
+    absent = Y[~Y['titles'].str.contains(xi)]
+    abs_real = absent[absent['label'] == 'real'].count()['label']
+    abs_fake = absent[absent['label'] == 'fake'].count()['label']
+    abs_total = abs_real + abs_fake
+    pr(1, (abs_real, abs_fake))
+
+    if con_total > 0:
+        con_entr = ((con_total/(con_total+abs_total)) * (- (con_real/con_total*math.log2(con_real/con_total)) - (con_fake/con_total*math.log2(con_fake/con_total))))
+    else:
+        con_entr = 0
+    if abs_total > 0:
+        abs_entr = ((abs_total/(con_total+abs_total)) * (- (abs_real/abs_total*math.log2(abs_real/abs_total)) - (abs_fake/abs_total*math.log2(abs_fake/abs_total))))
+    else:
+        abs_entr = 0
+    ch_entropy = con_entr + abs_entr
+    pr(1, ("Child Entropy: " + str(ch_entropy)))
 
     IG = parent_entropy - ch_entropy
     print("Information Gain: " + str(IG))
