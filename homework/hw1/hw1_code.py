@@ -9,7 +9,7 @@ from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 # 0 = assignment submission, 1 = regular development, 2 = debugging
 PRINT_LEVEL = 0
-np.random.seed(411231)
+np.random.seed(333)
 
 def load_data():
     fake_file = open("clean_fake.txt", "r")

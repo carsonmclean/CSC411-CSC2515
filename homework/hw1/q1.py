@@ -8,9 +8,9 @@ def getZ():
     return Z
 
 results = []
-iterations = 1000
+iterations = 10000
 i = 0
-d = 10000
+d = 100
 while i < iterations:
     print(iterations - i)
     i += 1
