@@ -59,6 +59,9 @@ def load_data():
     compute_information_gain(train, 'energy')
     compute_information_gain(train, 'hillary')
     compute_information_gain(train, 'canada')
+    compute_information_gain(train, 'somemadeupword')
+    compute_information_gain(train, 'the')
+    compute_information_gain(train, 'cat')
     print("\n")
 
     return datasets, vectorizer
@@ -142,6 +145,8 @@ def select_model(datasets, vectorizer):
     # plt.show()
 
 def compute_information_gain(Y, xi):
+    xi_reg = r"\b"+xi+r"\b"
+
     print('xi = ' + str(xi))
 
     real = Y[Y['label'] == 'real'].count()['label']
@@ -154,13 +159,13 @@ def compute_information_gain(Y, xi):
     pr(1, parent_entropy)
 
     pr(1, "Splitting on: " + str(xi))
-    contains = Y[Y['titles'].str.contains(xi)]
+    contains = Y[Y['titles'].str.contains(xi_reg, regex=True)]
     con_real = contains[contains['label'] == 'real'].count()['label']
     con_fake = contains[contains['label'] == 'fake'].count()['label']
     con_total = con_real + con_fake
     pr(1, (con_real, con_fake))
     # Andy Hayden -> https://stackoverflow.com/questions/17097643/search-for-does-not-contain-on-a-dataframe-in-pandas
-    absent = Y[~Y['titles'].str.contains(xi)]
+    absent = Y[~Y['titles'].str.contains(xi_reg, regex=True)]
     abs_real = absent[absent['label'] == 'real'].count()['label']
     abs_fake = absent[absent['label'] == 'fake'].count()['label']
     abs_total = abs_real + abs_fake
