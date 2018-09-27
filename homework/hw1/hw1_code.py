@@ -9,7 +9,7 @@ from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 # 0 = assignment submission, 1 = regular development, 2 = debugging
 PRINT_LEVEL = 0
-np.random.seed(1234567)
+np.random.seed(411231)
 
 def load_data():
     fake_file = open("clean_fake.txt", "r")
@@ -155,7 +155,7 @@ def compute_information_gain(Y, xi):
     pr(2, (real, fake, total))
 
     pr(1, "Parent Entropy:")
-    parent_entropy = - (real/total*math.log2(real/total)) - (fake/total*math.log2(fake/total))
+    parent_entropy = - (real/total*logg(real/total)) - (fake/total*logg(fake/total))
     pr(1, parent_entropy)
 
     pr(1, "Splitting on: " + str(xi))
@@ -172,11 +172,11 @@ def compute_information_gain(Y, xi):
     pr(1, (abs_real, abs_fake))
 
     if con_total > 0:
-        con_entr = ((con_total/(con_total+abs_total)) * (- (con_real/con_total*math.log2(con_real/con_total)) - (con_fake/con_total*math.log2(con_fake/con_total))))
+        con_entr = ((con_total/(con_total+abs_total)) * (- (con_real/con_total*logg(con_real/con_total)) - (con_fake/con_total*logg(con_fake/con_total))))
     else:
         con_entr = 0
     if abs_total > 0:
-        abs_entr = ((abs_total/(con_total+abs_total)) * (- (abs_real/abs_total*math.log2(abs_real/abs_total)) - (abs_fake/abs_total*math.log2(abs_fake/abs_total))))
+        abs_entr = ((abs_total/(con_total+abs_total)) * (- (abs_real/abs_total*logg(abs_real/abs_total)) - (abs_fake/abs_total*logg(abs_fake/abs_total))))
     else:
         abs_entr = 0
     ch_entropy = con_entr + abs_entr
@@ -188,6 +188,13 @@ def compute_information_gain(Y, xi):
 def pr(level, input):
     if PRINT_LEVEL >= level:
         print(input)
+
+def logg(x):
+    # https://piazza.com/class/jlp72odwmqo2v2?cid=150
+    if x == 0.0:
+        return 0.0
+    else:
+        return math.log2(x)
 
 
 datasets, vectorizer = load_data()
