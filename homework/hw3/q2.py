@@ -6,6 +6,7 @@ Created on Tue Sep 12 20:39:09 2017
 from __future__ import print_function
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.special import logsumexp # scipy.misc throws warning
 from sklearn.datasets import load_boston
 
 np.random.seed(0)
@@ -45,9 +46,15 @@ def LRLS(test_datum, x_train, y_train, tau, lam=1e-5):
            lam is the regularization parameter
     output is y_hat the prediction on test_datum
     '''
-    ## TODO
-    return None
-    ## TODO
+    # convert test vector (14,) to matrix (14,1)
+    test_datum = test_datum.reshape(test_datum.shape[0], 1)
+
+    a_i = np.exp(-l2(test_datum.T,x_train)/(2*(tau**2)))/np.exp(logsumexp(-l2(test_datum.T,x_train)/(2*(tau**2))))
+    A = np.diagflat(a_i) # np.diag extracts diagonal, np.diagflat makes diag matrix from input
+    # w = (XT*A*X + lambda*I)^-1 XT*A*y
+    w = np.linalg.solve(x_train.T.dot(A).dot(x_train) + lam * np.identity(x_train.shape[1]), x_train.T.dot(A).dot(y_train))
+    prediction = test_datum.T.dot(w)
+    return prediction
 
 
 def run_validation(x, y, taus, val_frac):
@@ -68,8 +75,12 @@ def run_validation(x, y, taus, val_frac):
     cutoff = int(len(x) * (1 - val_frac))
     x_tra, x_val = x_shf[:cutoff], x_shf[cutoff:]
     y_tra, y_val = y_shf[:cutoff], y_shf[cutoff:]
-    return None
-    ## TODO
+
+    tau = 1.0
+    lrls = LRLS(x_tra[22], x_tra, y_tra, tau)
+    print(lrls)
+
+    return None, None
 
 
 if __name__ == "__main__":
