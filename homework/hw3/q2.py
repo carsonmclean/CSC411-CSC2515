@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import logsumexp # scipy.misc throws warning
 from sklearn.datasets import load_boston
+import sys
+import time
 
 np.random.seed(0)
 
@@ -49,11 +51,11 @@ def LRLS(test_datum, x_train, y_train, tau, lam=1e-5):
     # convert test vector (14,) to matrix (14,1)
     test_datum = test_datum.reshape(test_datum.shape[0], 1)
 
-    a_i = np.exp(-l2(test_datum.T,x_train)/(2*(tau**2)))/np.exp(logsumexp(-l2(test_datum.T,x_train)/(2*(tau**2))))
-    A = np.diagflat(a_i) # np.diag extracts diagonal, np.diagflat makes diag matrix from input
+    A = np.diagflat(np.exp(-l2(test_datum.T, x_train)/(2*(tau**2)))/np.exp(logsumexp(-l2(test_datum.T, x_train)/(2*(tau**2)))))
     # w = (XT*A*X + lambda*I)^-1 XT*A*y
     w = np.linalg.solve(x_train.T.dot(A).dot(x_train) + lam * np.identity(x_train.shape[1]), x_train.T.dot(A).dot(y_train))
     prediction = test_datum.T.dot(w)
+
     return prediction
 
 
@@ -68,24 +70,47 @@ def run_validation(x, y, taus, val_frac):
            a vector of validation losses, one for each tau value
     '''
     # shuffle dataset and split into train and validate
-    # https://play.pixelblaster.ro/blog/2017/01/20/how-to-shuffle-two-arrays-to-the-same-order/
-    shuffle_order = np.arange(x.shape[0])
-    x_shf = x[shuffle_order]
-    y_shf = y[shuffle_order]
+    x_shf = x[idx]
+    y_shf = y[idx]
+
     cutoff = int(len(x) * (1 - val_frac))
     x_tra, x_val = x_shf[:cutoff], x_shf[cutoff:]
     y_tra, y_val = y_shf[:cutoff], y_shf[cutoff:]
 
-    tau = 1.0
-    lrls = LRLS(x_tra[22], x_tra, y_tra, tau)
-    print(lrls)
+    tra_loss = []
+    val_loss = []
 
-    return None, None
+    start = time.time()
+    for i, tau in enumerate(taus):
+        # Progress Bar with % Complete
+        # Steven C. Howell
+        # https://stackoverflow.com/questions/3002085/python-to-print-out-status-bar-and-percentage/29703127#comment80545022_3002100
+        sys.stdout.write('\r')
+        now = time.time()
+        elapsed = now - start
+        k = (i + 1) / taus.shape[0]
+        sys.stdout.write("[%-40s] %d%%    %d seconds remaining" % ('='*int(40*k), 100*k, elapsed/k - elapsed))
+        sys.stdout.flush()
+
+        tra_loss_i = 0.0
+        val_loss_i = 0.0
+        for j, _ in enumerate(x_tra):
+            lrls = LRLS(x_tra[j], x_tra, y_tra, tau)
+            tra_loss_i += (lrls - y_tra[j])**2
+        for j, _ in enumerate(x_val):
+            lrls = LRLS(x_val[j], x_tra, y_tra, tau)
+            val_loss_i += (lrls - y_val[j])**2
+        tra_loss.append(tra_loss_i)
+        val_loss.append(val_loss_i)
+
+    return tra_loss, val_loss
 
 
 if __name__ == "__main__":
     # In this excersice we fixed lambda (hard coded to 1e-5) and only set tau value. Feel free to play with lambda as well if you wish
     taus = np.logspace(1.0, 3, 200)
     train_losses, test_losses = run_validation(x, y, taus, val_frac=0.3)
-    plt.semilogx(train_losses)
-    plt.semilogx(test_losses)
+    plt.semilogx(train_losses, label="train")
+    plt.semilogx(test_losses, label="test")
+    plt.legend()
+    plt.show()
