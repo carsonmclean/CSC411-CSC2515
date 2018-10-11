@@ -60,7 +60,14 @@ def run_validation(x, y, taus, val_frac):
            a vector of training losses, one for each tau value
            a vector of validation losses, one for each tau value
     '''
-    ## TODO
+    # shuffle dataset and split into train and validate
+    # https://play.pixelblaster.ro/blog/2017/01/20/how-to-shuffle-two-arrays-to-the-same-order/
+    shuffle_order = np.arange(x.shape[0])
+    x_shf = x[shuffle_order]
+    y_shf = y[shuffle_order]
+    cutoff = int(len(x) * (1 - val_frac))
+    x_tra, x_val = x_shf[:cutoff], x_shf[cutoff:]
+    y_tra, y_val = y_shf[:cutoff], y_shf[cutoff:]
     return None
     ## TODO
 
